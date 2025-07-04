@@ -1,4 +1,9 @@
-from random import randint, seed
+from random import randint
+
+# Comment these out for random seed
+from random import seed
+
+seed(999)
 
 
 def shuffle(cards: list[int]):
@@ -127,7 +132,6 @@ class BlackjackState:
 
 
 if __name__ == "__main__":
-    # seed(999)
 
     b = BlackjackState()
     try:
@@ -135,7 +139,7 @@ if __name__ == "__main__":
         b.deal()
         b.print_state()
         if b.check_dealer_blackjack():
-            print(f"PLAYER BUSTED, DEALER WINS ({str(e)})")
+            print("PLAYER BUSTED, DEALER WINS")
 
         while b.player_total < 15:
             b.player_hit()

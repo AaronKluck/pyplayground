@@ -1,2 +1,8 @@
 
+black
+flake8
+
 pytest
+
+fastapi
+sqlalchemy
