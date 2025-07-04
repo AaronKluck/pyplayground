@@ -1,19 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from pydantic import BaseModel
+
+from pyplay.api.models.authors import AuthorCreate, AuthorRead
 from pyplay.api.controllers import authors as author_controller
-
-
-class AuthorCreate(BaseModel):
-    name: str
-
-
-class AuthorRead(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        orm_mode = True
+from pyplay.api.controllers.exceptions import NotFoundError, ConflictError
 
 
 router = APIRouter()
@@ -21,10 +11,18 @@ router = APIRouter()
 
 @router.post("/", response_model=AuthorRead, status_code=status.HTTP_201_CREATED)
 async def create_author(author: AuthorCreate):
-    try:
-        return await author_controller.create_author(author)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    result, is_new = await author_controller.create_author(author)
+    if is_new:
+        return result
+    else:
+        # Return existing resource with 200 status
+        from fastapi.responses import Response
+
+        return Response(
+            content=result.model_dump_json(),
+            media_type="application/json",
+            status_code=200,
+        )
 
 
 @router.get("/", response_model=List[AuthorRead])
@@ -43,12 +41,11 @@ async def get_author(author_id: int):
 @router.put("/{author_id}", response_model=AuthorRead)
 async def update_author(author_id: int, author: AuthorCreate):
     try:
-        updated = await author_controller.update_author(author_id, author)
-        if not updated:
-            raise HTTPException(status_code=404, detail="Author not found")
-        return updated
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return await author_controller.update_author(author_id, author)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ConflictError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 
 @router.delete("/{author_id}", status_code=status.HTTP_204_NO_CONTENT)

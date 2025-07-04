@@ -5,4 +5,6 @@ flake8
 pytest
 
 fastapi
-sqlalchemy
+sqlalchemy[asyncio]
+asyncpg
+uvicorn

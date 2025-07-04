@@ -1,13 +1,18 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
+
 from pyplay.api.db.helpers import init_db
 from pyplay.api.routes import authors, books
 
-app = FastAPI()
 
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     await init_db()
+    yield
+    pass
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 app.include_router(authors.router, prefix="/authors", tags=["authors"])
